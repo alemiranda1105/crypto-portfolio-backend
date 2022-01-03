@@ -8,6 +8,14 @@ def ResponseModel(data, message):
     }
 
 
+def LoginResponseModel(data, token):
+    return {
+        "data": [data],
+        "code": 200,
+        "token": token
+    }
+
+
 def ErrorResponseModel(error, code, message):
     return {
         "error": error,

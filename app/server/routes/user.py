@@ -3,9 +3,9 @@ from fastapi.encoders import jsonable_encoder
 
 from app.server.auth.auth_bearer import JWTBearer
 from app.server.auth.auth_handler import sign_jwt
-from app.server.controllers.user import retrieve_user, sign_up
-from app.server.models.response import ResponseModel, ErrorResponseModel
-from app.server.models.user import UserSchema
+from app.server.controllers.user import retrieve_user, sign_up, login
+from app.server.models.response import ResponseModel, ErrorResponseModel, LoginResponseModel
+from app.server.models.user import UserSchema, UserLoginSchema
 
 router = APIRouter(
     prefix="/users",
@@ -25,5 +25,13 @@ async def add_user(user: UserSchema = Body(...)):
     new_user = await sign_up(user)
     if not new_user:
         return ErrorResponseModel("Login failed", 400, "Email is in used")
-    else:
-        return sign_jwt(new_user["email"])
+    return LoginResponseModel(new_user, sign_jwt(new_user['email']))
+
+
+@router.post("/login")
+async def login_user(user: UserLoginSchema = Body(...)):
+    user = jsonable_encoder(user)
+    current_user = await login(user)
+    if not current_user:
+        return ErrorResponseModel("login failed", 400, "Check your data")
+    return LoginResponseModel(current_user, sign_jwt(current_user["email"]))
