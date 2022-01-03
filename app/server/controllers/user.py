@@ -1,4 +1,5 @@
 from bson import ObjectId
+import hashlib
 
 from app.server.database import user_collection, user_helper
 
@@ -10,6 +11,7 @@ async def retrieve_user(user_id: str) -> dict:
 
 
 async def sign_up(user_data):
+    user_data['password'] = hash_password(password=user_data['password'])
     email_exists = await user_collection.find_one({"email": user_data["email"]})
     if email_exists:
         return False
@@ -20,6 +22,7 @@ async def sign_up(user_data):
 
 
 async def login(user_data):
+    user_data['password'] = hash_password(password=user_data['password'])
     user = await user_collection.find_one({"email": user_data["email"]})
     if user:
         if user['password'] == user_data["password"]:
@@ -27,3 +30,8 @@ async def login(user_data):
         else:
             return False
     return False
+
+
+def hash_password(password: str) -> str:
+    password = hashlib.md5(password.encode('utf-8'))
+    return password.hexdigest()
